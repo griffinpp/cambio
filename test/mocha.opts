@@ -1,0 +1,2 @@
+--require test/mocha.conf.js
+--globals expect,sinon

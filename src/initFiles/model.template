@@ -1,0 +1,28 @@
+'use strict';
+
+import {Model} from 'objection';
+
+function <#modelName>() {
+  Model.apply(this, arguments);
+}
+
+Model.extend(<#modelName>);
+
+<#modelName>.tableName = '<#tableName>';
+
+<#modelName>.jsonSchema = {
+  type: 'object',
+  required: [],
+
+  properties: {
+    id: {type:'integer'},
+  }
+};
+
+/* see http://vincit.github.io/objection.js/#models for example mappings.  to/from should
+   use the /table/ name, not the model name */
+<#modelName>.relationMappings = {
+  
+};
+
+export default <#modelName>;

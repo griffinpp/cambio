@@ -1,19 +1,29 @@
 {
   "name": "rhinozug",
-  "version": "1.0.1",
-  "description": "Rhinogram's internal database connection module",
-  "main": "lib/index.js",
+  "version": "1.1.0",
+  "description": "Rhinogram's internal database connection and migration module",
+  "main": "lib/rhinozug.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "rm -Rf lib && babel src -d lib --copy-files && mocha lib/tests",
     "build": "rm -Rf lib && babel src -d lib --copy-files"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babel-cli": "^6.10.1",
-    "babel-preset-es2015": "^6.9.0",
+    "colors": "^1.1.2",
     "knex": ">= 0.8.0 <= 0.11.7",
     "mysql": "^2.11.1",
-    "postgresql": "0.0.1"
+    "postgresql": "0.0.1",
+    "moment": "^2.13.0",
+    "redefine": "^0.2.1",
+    "umzug": "^1.11.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.10.1",
+    "babel-preset-es2015": "^6.9.0",
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3",
+    "proxyquire": "^1.7.9",
+    "sinon": "^1.17.4"
   }
 }

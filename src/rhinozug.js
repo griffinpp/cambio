@@ -4,7 +4,7 @@ import * as fileHelpers from './helpers/fileHelper';
 import Umzug from 'umzug';
 import * as logger from './helpers/logger';
 import cp from 'child_process';
-import * as knex from './knex.adapter';
+import * as adapter from './knex.adapter';
 
 let migrationUmzug;
 
@@ -282,6 +282,37 @@ export function unseed(file, connection) {
     })
 }
 
+export function rebuildDb(connection) {
+  if (!connection) {
+    connection = 'default';
+  }
+  const configFile = fileHelpers.getConfigFilePath(`${connection}.js`);
+  let config = require(configFile);
+  const dbName = config.connection.database;
+  delete config.connection.database;
+
+  let knex = getConnection(config);
+  knex.raw(`DROP DATABASE ${dbName}`)
+    .then(() => logger.log(`Dropped ${dbName} database`))
+    .then(() => knex.raw(`CREATE DATABASE ${dbName}`))
+    .then(() => logger.log(`Created ${dbName} database`))
+    .then(() => {
+      // reset the connection to connect to the database
+      knex.destroy();
+      config.connection.database = dbName;
+      knex = getConnection(config);
+      // run all migrations to recreate the schema
+      return up(null, connection);
+    })
+    .then(() => {
+      knex.destroy();
+    })
+    .catch((err) => {
+      logger.error(`Error rebuilding database: ${err}`);
+      knex.destroy();
+    });
+}
+
 export function init() {
   try {
     let cDefault = fileHelpers.getInitFile('default.connection');
@@ -316,7 +347,7 @@ export function init() {
 }
 
 export function getConnection(config) {
-  return knex.connect(config);
+  return adapter.connect(config);
 }
 
 function replace(string, find, replace) {

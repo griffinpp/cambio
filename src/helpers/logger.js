@@ -2,11 +2,17 @@
 
 import colors from 'colors';
 
-export function log(item) {
+export function log(item, silent) {
+  if (silent) {
+    return;
+  }
   console.log(`RZ> ${item}`.white);
 }
 
-export function warn(item) {
+export function warn(item, silent) {
+  if (silent) {
+    return;
+  }
   console.log(`RZ> ${item}`.yellow);
 }
 

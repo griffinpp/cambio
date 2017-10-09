@@ -18,18 +18,18 @@ function printList(list) {
   });
 }
 
-export function createMigration(name) {
+export function createMigration(name, silent) {
   let migrationName = name ? name : 'unnamed';
   try {
     let filePath = fileHelpers.getMigrationFilePath(migrationName);
     fileHelpers.write(filePath, fileHelpers.getMigrationTemplate());
-    logger.log(`Migration ${filePath} created`);
+    logger.log(`Migration ${filePath} created`, silent);
   } catch (err) {
     logger.error(`Error creating migration file: ${err}`);
   }
 }
 
-export function up(to, connection) {
+export function up(to, connection, silent) {
   setConnection(connection);
   setMigrationUmzug();
 
@@ -38,12 +38,12 @@ export function up(to, connection) {
       if (to && to !== null) {
         return migrationUmzug.up({to})
           .then(() => {
-            logger.log(`Migrations up to ${to} complete`);    
+            logger.log(`Migrations up to ${to} complete`, silent);    
           });
       } else {
         return migrationUmzug.up()
           .then(() => {
-            logger.log(`All migrations complete`);
+            logger.log(`All migrations complete`, silent);
           });
       }
     })
@@ -52,7 +52,7 @@ export function up(to, connection) {
     });
 }
 
-export function down(to, connection) {
+export function down(to, connection, silent) {
   setConnection(connection);
   setMigrationUmzug();
 
@@ -61,12 +61,12 @@ export function down(to, connection) {
       if (to && to !== null) {
         return migrationUmzug.down({to})
           .then(() => {
-            logger.log(`Migrations down to ${to} complete`);      
+            logger.log(`Migrations down to ${to} complete`, silent);      
           });        
       } else {
         return migrationUmzug.down()
           .then(() => {
-             logger.log(`Latest migration down complete`); 
+             logger.log(`Latest migration down complete`, silent); 
           });
       }
     })
@@ -188,18 +188,18 @@ export function listConnections() {
   });
 }
 
-export function createSeed(name) {
+export function createSeed(name, silent) {
   let seedName = name ? name : 'unnamed';
   try {
     let filePath = fileHelpers.getSeedFilePath(seedName);
     fileHelpers.write(filePath, fileHelpers.getSeedTemplate());
-    logger.log(`Seed ${filePath} created`);
+    logger.log(`Seed ${filePath} created`, silent);
   } catch (err) {
     logger.error(`Error creating seed file: ${err}`);
   }
 }
 
-export function createModel(name, tableName) {
+export function createModel(name, tableName, silent) {
   try {
     if (!name) {
       throw new Error('You must specify a name for the model');
@@ -207,7 +207,7 @@ export function createModel(name, tableName) {
 
     if (!tableName) {
       tableName = name;
-      logger.warn(`No table name provided. Using model name "${name}" as the table name. This can be edited in the model file later.`);
+      logger.warn(`No table name provided. Using model name "${name}" as the table name. This can be edited in the model file later.`, silent);
     }
 
     let filePath = fileHelpers.getModelFilePath(name);
@@ -222,7 +222,7 @@ export function createModel(name, tableName) {
   }
 }
 
-export function createConn(connInfo) {
+export function createConn(connInfo, silent) {
   try {
     let filePath = fileHelpers.getConnFilePath(connInfo.name);
     let templateText = fileHelpers.getConnTemplate();
@@ -250,39 +250,39 @@ export function createConn(connInfo) {
     }
 
     fileHelpers.write(filePath, templateText);
-    logger.log(`New connection file ${filePath} successfully created`);
+    logger.log(`New connection file ${filePath} successfully created`, silent);
   } catch (err) {
     logger.error(`Error creating connection: ${err}`);
   }
 }
 
-export function seed(file, connection) {
+export function seed(file, connection, silent) {
   setConnection(connection);
   setSeedUmzug();
 
   return seedUmzug.up(file)
     .then(() => {
-      logger.log(`${file} successfully seeded`);
+      logger.log(`${file} successfully seeded`, silent);
     })
     .catch((err) => {
       logger.error(`Error seeding the database: ${err}`);
     });
 }
 
-export function unseed(file, connection) {
+export function unseed(file, connection, silent) {
   setConnection(connection);
   setSeedUmzug();
 
   return seedUmzug.down(file)
     .then(() => {
-      logger.log(`${file} unseeded`);
+      logger.log(`${file} unseeded`, silent);
     })
     .catch((err) => {
       logger.error(`Error unseeding: ${err}`);
     })
 }
 
-export function rebuildDb(connection) {
+export function rebuildDb(connection, silent) {
   if (!connection) {
     connection = 'default';
   }
@@ -292,10 +292,16 @@ export function rebuildDb(connection) {
   delete config.connection.database;
 
   let knex = getConnection(config);
-  knex.raw(`DROP DATABASE ${dbName}`)
-    .then(() => logger.log(`Dropped ${dbName} database`))
+  return Promise.resolve()
+    .then(() => {
+      return knex.raw(`DROP DATABASE ${dbName}`)
+        .then(() => logger.log(`Dropped ${dbName} database`, silent))
+        .catch((err) => {
+          logger.warn(`Database ${dbName} not found. Creating.`);
+        })
+    })
     .then(() => knex.raw(`CREATE DATABASE ${dbName}`))
-    .then(() => logger.log(`Created ${dbName} database`))
+    .then(() => logger.log(`Created ${dbName} database`, silent))
     .then(() => {
       // reset the connection to connect to the database
       knex.destroy();

@@ -1,7 +1,7 @@
 'use strict'
 
 import redefine from 'redefine';
-import * as rz from 'rhinozug';
+import * as co from 'cambio';
 
 // dynamically require some modules that should be in the host project
 let fileHelpers = require(`${__dirname}/fileHelper`);
@@ -16,11 +16,11 @@ module.exports = redefine.Class({
       options.storageOptions = {};
     }
     if (!options.storageOptions.tableName) {
-      options.storageOptions.tableName = 'rhinozug';
+      options.storageOptions.tableName = 'cambio';
     }
   },
   logMigration: function (migrationName){
-    let connection = rz.getConnection(config);
+    let connection = co.getConnection(config);
 
     return this.createTableIfNotExists(connection)
       .then(() => {
@@ -36,7 +36,7 @@ module.exports = redefine.Class({
       });
   },
   unlogMigration: function (migrationName) {
-    let connection = rz.getConnection(config);
+    let connection = co.getConnection(config);
 
     return this.createTableIfNotExists(connection)
       .then(() => {
@@ -52,7 +52,7 @@ module.exports = redefine.Class({
       });
   },
   executed: function () {
-    let connection = rz.getConnection(config);
+    let connection = co.getConnection(config);
 
     return this.createTableIfNotExists(connection)
       .then(() => {

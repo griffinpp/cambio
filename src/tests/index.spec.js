@@ -55,14 +55,14 @@ let loggerStub = {
   error: sinon.stub()
 };
 
-let sut = proxyquire('../rhinozug', {
+let sut = proxyquire('../index', {
   './helpers/fileHelper': fhStub,
   'umzug': umzugStub,
   'child_process': cpStub,
   './helpers/logger': loggerStub
 });
 
-describe('rhinozug module', () => {
+describe('cambio module', () => {
   beforeEach(() => {
 
     loggerStub.error.reset();
@@ -487,9 +487,9 @@ describe('rhinozug module', () => {
         expect(fhStub.write.calledWith('config/seed.template', 'init file contents')).to.be.true;
       });
 
-      it('should npm install the rhinozug connection module', () => {
+      it('should npm install the cambio connection module', () => {
         sut.init();
-        expect(cpStub.exec.calledWith('npm install --save rhinozug')).to.be.true;
+        expect(cpStub.exec.calledWith('npm install --save cambio')).to.be.true;
       });
 
     });

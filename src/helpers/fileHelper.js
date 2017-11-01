@@ -31,13 +31,13 @@ export function makeDir(name) {
   }
 }
 
-// finds the folder that rz was init-ed into by searching for the directory containing the directories created by the init process. Don't look in directories named 'lib' or '.tmp'
+// finds the folder that co was init-ed into by searching for the directory containing the directories created by the init process. Don't look in directories named 'lib' or '.tmp'
 export function getDbDir() {
   let rootDir = getRootDir(process.cwd());
   let dbDir = findDir(rootDir, ['config','migrations','seeds','models'], ['lib', '.tmp']);
 
   if (dbDir === null) {
-    throw new Error('Unable to find the folder where rhinozug was initialized in this project.  You may need to initialize rhinozug by running "rhinozug init" in a new folder in the project.');
+    throw new Error('Unable to find the folder where cambio was initialized in this project.  You may need to initialize cambio by running "cambio init" in a new folder in the project.');
   }
 
   return dbDir;

@@ -1,8 +1,8 @@
 {
-  "name": "rhinozug",
-  "version": "1.1.4",
-  "description": "Rhinogram's internal database connection and migration module",
-  "main": "lib/rhinozug.js",
+  "name": "cambio",
+  "version": "0.1.0",
+  "description": "Manage change in your database!",
+  "main": "lib/cambio.js",
   "scripts": {
     "test": "rm -Rf lib && babel src -d lib --copy-files && mocha lib/tests",
     "build": "rm -Rf lib && babel src -d lib --copy-files"

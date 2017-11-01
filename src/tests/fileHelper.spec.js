@@ -93,10 +93,10 @@ describe('fileHelper module', () => {
 
   describe('.getDbDir', () => {
     describe('when a package.json is found in the project', () => {
-      describe('when rhinozug has been initialized in the project', () => {
+      describe('when cambio has been initialized in the project', () => {
         beforeEach(setupReadDirSuccess);
 
-        it('should return the directory where rhinozug was initialized', () => {
+        it('should return the directory where cambio was initialized', () => {
           let result = sut.getDbDir();
 
           // package.json is not "found" in the first call to fs.readdirSync, so it should go down a level
@@ -104,7 +104,7 @@ describe('fileHelper module', () => {
         });
       });
 
-      describe('when rhinozug has not been initialized in the project', () => {
+      describe('when cambio has not been initialized in the project', () => {
         beforeEach(setupReadDirFail);
 
         it('should throw an error', () => {
@@ -191,7 +191,7 @@ describe('fileHelper module', () => {
   });
 
   describe('.getMigrationsPath()', () => {
-      it('should return a path to the "migrations" directory in the directory where "rhinozug init" was called', () => {
+      it('should return a path to the "migrations" directory in the directory where "cambio init" was called', () => {
           let result = sut.getMigrationsPath();
           expect(result).to.equal(path.normalize([process.cwd(), '..', 'src','db','migrations'].join('/')));
       });
@@ -205,7 +205,7 @@ describe('fileHelper module', () => {
   });
 
   describe('.getInitPath()', () => {
-    it('should return a path to the rhinozug app\'s "initFiles" directory', () => {
+    it('should return a path to the cambio app\'s "initFiles" directory', () => {
       // not really a good way to test this, but at least this test will catch if the algorithm changes
       let result = sut.getInitPath();
       let expectedResult = path.normalize([__dirname,'..', 'initFiles'].join('/'));
@@ -228,7 +228,7 @@ describe('fileHelper module', () => {
   });
 
   describe('.getInitFile()', () => {
-    it('should return the contents of the specified file in the rhinozug app\'s initFiles directory', () => {
+    it('should return the contents of the specified file in the cambio app\'s initFiles directory', () => {
         let result = sut.getInitFile('fake.js');
         let expectedPath = path.normalize([__dirname,'..', 'initFiles', 'fake.js'].join('/'));
         expect(fsStub.readFileSync.calledWith(expectedPath)).to.be.true;

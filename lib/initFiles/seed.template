@@ -3,13 +3,13 @@
 /* See: http://knexjs.org/#Schema-Building
 for documentation of the schema building api in use */
 
-let rz = require('rhinozug');
+let co = require('cambio');
 let config = require(`../config/${process.env.connection}.js`);
 
 module.exports = {
     up: function () {
-        // rz.getConnection() returns a knex object
-        let connection = rz.getConnection(config);
+        // co.getConnection() returns a knex object
+        let connection = co.getConnection(config);
         /*
         // Add data insertion commands here.
         // Return a promise to correctly handle asynchronicity.

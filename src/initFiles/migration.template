@@ -3,14 +3,14 @@
 /* See: http://knexjs.org/#Schema-Building
 for documentation of the schema building api in use */
 
-// rhinozug should have been installed when the migration folder was initialized
-let rz = require('rhinozug');
+// cambio should have been installed when the migration folder was initialized
+let co = require('cambio');
 let config = require(`../config/${process.env.connection}.js`);
 
 module.exports = {
     up: function () {
-        // rz.getConnection() returns a knex object
-        let connection = rz.getConnection(config);
+        // co.getConnection() returns a knex object
+        let connection = co.getConnection(config);
         /*
         // Add altering commands here.
         // Return a promise to correctly handle asynchronicity.
@@ -35,7 +35,7 @@ module.exports = {
     },
 
     down: function () {
-        let connection = rz.getConnection(config);
+        let connection = co.getConnection(config);
         /*
         // Add reverting commands here.
         // Return a promise to correctly handle asynchronicity.

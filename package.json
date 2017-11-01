@@ -2,7 +2,7 @@
   "name": "cambio",
   "version": "0.1.0",
   "description": "Manage change in your database!",
-  "main": "lib/cambio.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "rm -Rf lib && babel src -d lib --copy-files && mocha lib/tests",
     "build": "rm -Rf lib && babel src -d lib --copy-files"

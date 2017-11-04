@@ -1,5 +1,3 @@
-'use strict';
-
 import fs from 'fs';
 import moment from 'moment';
 import path from 'path';
@@ -10,6 +8,7 @@ export function read(filePath) {
     return fs.readFileSync(filePath).toString();
   } catch (err) {
     logger.error(`Error reading file: ${err}`);
+    return null;
   }
 }
 
@@ -33,8 +32,8 @@ export function makeDir(name) {
 
 // finds the folder that co was init-ed into by searching for the directory containing the directories created by the init process. Don't look in directories named 'lib' or '.tmp'
 export function getDbDir() {
-  let rootDir = getRootDir(process.cwd());
-  let dbDir = findDir(rootDir, ['config','migrations','seeds','models'], ['lib', '.tmp']);
+  const rootDir = getRootDir(process.cwd());
+  const dbDir = findDir(rootDir, ['config', 'migrations', 'seeds', 'models'], ['lib', '.tmp']);
 
   if (dbDir === null) {
     throw new Error('Unable to find the folder where cambio was initialized in this project.  You may need to initialize cambio by running "cambio init" in a new folder in the project.');
@@ -44,10 +43,9 @@ export function getDbDir() {
 
   // finds the project root directory by searching recursively for the package.json file
   function getRootDir(dir) {
-
     // we've recursed to the root dir without finding a package.json
     if (dir === '/') {
-      throw new Error('No package.json could be found for this project.  You may need to run "npm init" in the root directory of the project, or create package.json manually.')
+      throw new Error('No package.json could be found for this project.  You may need to run "npm init" in the root directory of the project, or create package.json manually.');
     }
 
     let packageFound = false;
@@ -59,12 +57,11 @@ export function getDbDir() {
 
     if (packageFound) {
       return dir;
-    } else {
-      return getRootDir(path.normalize([
-          dir,
-          '..'
-        ].join('/')));
     }
+    return getRootDir(path.normalize([
+      dir,
+      '..',
+    ].join('/')));
   }
 
   // finds a directory containing the subdirectories named in search by searching recursively through subdirectories.  Must be an exact match, case sensitive
@@ -84,14 +81,14 @@ export function getDbDir() {
     function getDirList(dir) {
       return fs.readdirSync(dir).filter((file) => {
         return fs.statSync(path.join(dir, file)).isDirectory();
-      }).filter((dir) => {
-        return ignoreDirNames.indexOf(dir) === -1;
+      }).filter((d) => {
+        return ignoreDirNames.indexOf(d) === -1;
       });
     }
 
     // does a depth-first search for dirs with a name matching the search term
     function searchDir(dir) {
-      let subDirs = getDirList(dir);
+      const subDirs = getDirList(dir);
 
       // this will ensure that found is false if there are no subdirectories
       let found = subDirs.length > 0;
@@ -106,7 +103,7 @@ export function getDbDir() {
       // otherwise, continue searching into the subdirectories
       } else {
         subDirs.map((subDir) => {
-          searchDir(path.join(dir, subDir)); 
+          searchDir(path.join(dir, subDir));
         });
       }
     }
@@ -114,9 +111,9 @@ export function getDbDir() {
 }
 
 function getDbSubdir(dirName) {
-  let p = [
+  const p = [
     getDbDir(),
-    dirName
+    dirName,
   ].join('/');
   return path.normalize(p);
 }
@@ -139,7 +136,7 @@ export function getConfigPath() {
 
 export function getConnections() {
   return fs.readdirSync(getConfigPath()).filter((file) => {
-    return(file.indexOf('.template') === -1);
+    return file.indexOf('.template') === -1;
   }).map((file) => {
     return file.replace('.js', '');
   });
@@ -147,26 +144,26 @@ export function getConnections() {
 
 // initFiles is a directory in this project, not the target project, so use __dirname
 export function getInitPath() {
-  let p = [
+  const p = [
     __dirname,
     '..',
-    'initFiles'
+    'initFiles',
   ].join('/');
   return path.normalize(p);
 }
 
 export function getConfigFilePath(filename) {
-  let p = [
+  const p = [
     getConfigPath(),
-    filename
+    filename,
   ].join('/');
   return path.normalize(p);
 }
 
 export function getInitFile(filename) {
-  let p = [
+  const p = [
     getInitPath(),
-    filename
+    filename,
   ].join('/');
   return read(p);
 }
@@ -174,14 +171,14 @@ export function getInitFile(filename) {
 export function getCreatedFileName(name) {
   return [
     moment().utc().format('YYYYMMDDHHmmss'),
-    name
+    name,
   ].join('-');
 }
 
 export function getModelFileName(name) {
   return [
     name,
-    'model'
+    'model',
   ].join('.');
 }
 
@@ -196,59 +193,59 @@ export function addFileExtension(name) {
 export function getMigrationFilePath(name) {
   return [
     getMigrationsPath(),
-    addFileExtension(getCreatedFileName(name))
+    addFileExtension(getCreatedFileName(name)),
   ].join('/');
 }
 
 export function getSeedFilePath(name) {
   return [
     getSeedsPath(),
-    addFileExtension(getCreatedFileName(name))
+    addFileExtension(getCreatedFileName(name)),
   ].join('/');
 }
 
 export function getModelFilePath(name) {
   return [
     getModelsPath(),
-    addFileExtension(getModelFileName(name))
+    addFileExtension(getModelFileName(name)),
   ].join('/');
 }
 
 export function getConnFilePath(name) {
   return [
     getConfigPath(),
-    addFileExtension(name)
+    addFileExtension(name),
   ].join('/');
 }
 
 export function getMigrationTemplateFilePath() {
-  let p = [
+  const p = [
     getConfigPath(),
-    'migration.template'
+    'migration.template',
   ].join('/');
   return path.normalize(p);
 }
 
 export function getSeedTemplateFilePath() {
-  let p = [
+  const p = [
     getConfigPath(),
-    'seed.template'
+    'seed.template',
   ].join('/');
   return path.normalize(p);
 }
 
 export function getModelTemplateFilePath() {
-  let p = [
+  const p = [
     getConfigPath(),
-    'model.template'
+    'model.template',
   ].join('/');
   return path.normalize(p);
 }
 
 export function getConnTemplateFilePath() {
-  let p = [
+  const p = [
     getConfigPath(),
-    'connection.template'
+    'connection.template',
   ].join('/');
   return path.normalize(p);
 }

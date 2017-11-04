@@ -1,7 +1,3 @@
-'use strict'
-
-import colors from 'colors';
-
 export function log(item, silent) {
   if (silent) {
     return;

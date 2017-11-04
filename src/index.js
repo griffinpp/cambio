@@ -1,9 +1,7 @@
-'use strict';
-
-import * as fileHelpers from './helpers/fileHelper';
-import Umzug from 'umzug';
-import * as logger from './helpers/logger';
 import cp from 'child_process';
+import Umzug from 'umzug';
+import * as fileHelpers from './helpers/fileHelper';
+import * as logger from './helpers/logger';
 import * as adapter from './knex.adapter';
 
 let migrationUmzug;
@@ -19,9 +17,9 @@ function printList(list) {
 }
 
 export function createMigration(name, silent) {
-  let migrationName = name ? name : 'unnamed';
+  const migrationName = name !== undefined ? name : 'unnamed';
   try {
-    let filePath = fileHelpers.getMigrationFilePath(migrationName);
+    const filePath = fileHelpers.getMigrationFilePath(migrationName);
     fileHelpers.write(filePath, fileHelpers.getMigrationTemplate());
     logger.log(`Migration ${filePath} created`, silent);
   } catch (err) {
@@ -36,19 +34,18 @@ export function up(to, connection, silent) {
   return Promise.resolve()
     .then(() => {
       if (to && to !== null) {
-        return migrationUmzug.up({to})
+        return migrationUmzug.up({ to })
           .then(() => {
-            logger.log(`Migrations up to ${to} complete`, silent);    
-          });
-      } else {
-        return migrationUmzug.up()
-          .then(() => {
-            logger.log(`All migrations complete`, silent);
+            logger.log(`Migrations up to ${to} complete`, silent);
           });
       }
+      return migrationUmzug.up()
+        .then(() => {
+          logger.log('All migrations complete', silent);
+        });
     })
     .catch((err) => {
-      logger.error(`Error running up migration(s): ${err}`); 
+      logger.error(`Error running up migration(s): ${err}`);
     });
 }
 
@@ -59,16 +56,15 @@ export function down(to, connection, silent) {
   return Promise.resolve()
     .then(() => {
       if (to && to !== null) {
-        return migrationUmzug.down({to})
+        return migrationUmzug.down({ to })
           .then(() => {
-            logger.log(`Migrations down to ${to} complete`, silent);      
-          });        
-      } else {
-        return migrationUmzug.down()
-          .then(() => {
-             logger.log(`Latest migration down complete`, silent); 
+            logger.log(`Migrations down to ${to} complete`, silent);
           });
       }
+      return migrationUmzug.down()
+        .then(() => {
+          logger.log('Latest migration down complete', silent);
+        });
     })
     .catch((err) => {
       logger.error(`Error running down migration(s): ${err}`);
@@ -97,7 +93,7 @@ export function listPending(connection) {
   migrationUmzug.pending()
     .then((list) => {
       logger.log('\nPending Migrations:');
-      return list
+      return list;
     })
     .then(printList)
     .then(() => {
@@ -150,7 +146,7 @@ export function listPendingSeeds(connection) {
   seedUmzug.pending()
     .then((list) => {
       logger.log('\nUnapplied Seeds:');
-      return list
+      return list;
     })
     .then(printList)
     .then(() => {
@@ -189,9 +185,9 @@ export function listConnections() {
 }
 
 export function createSeed(name, silent) {
-  let seedName = name ? name : 'unnamed';
+  const seedName = name !== undefined ? name : 'unnamed';
   try {
-    let filePath = fileHelpers.getSeedFilePath(seedName);
+    const filePath = fileHelpers.getSeedFilePath(seedName);
     fileHelpers.write(filePath, fileHelpers.getSeedTemplate());
     logger.log(`Seed ${filePath} created`, silent);
   } catch (err) {
@@ -205,16 +201,17 @@ export function createModel(name, tableName, silent) {
       throw new Error('You must specify a name for the model');
     }
 
+    let table = tableName;
     if (!tableName) {
-      tableName = name;
+      table = name;
       logger.warn(`No table name provided. Using model name "${name}" as the table name. This can be edited in the model file later.`, silent);
     }
 
-    let filePath = fileHelpers.getModelFilePath(name);
+    const filePath = fileHelpers.getModelFilePath(name);
     let templateText = fileHelpers.getModelTemplate();
 
     templateText = replace(templateText, '<#modelName>', name);
-    templateText = replace(templateText, '<#tableName>', tableName);
+    templateText = replace(templateText, '<#tableName>', table);
 
     fileHelpers.write(filePath, templateText);
   } catch (err) {
@@ -224,10 +221,8 @@ export function createModel(name, tableName, silent) {
 
 export function createConn(connInfo, silent) {
   try {
-    let filePath = fileHelpers.getConnFilePath(connInfo.name);
+    const filePath = fileHelpers.getConnFilePath(connInfo.name);
     let templateText = fileHelpers.getConnTemplate();
-
-    
 
     templateText = replace(templateText, '<#host>', connInfo.host);
     templateText = replace(templateText, '<#port>', connInfo.port);
@@ -236,13 +231,15 @@ export function createConn(connInfo, silent) {
     templateText = replace(templateText, '<#database>', connInfo.database);
 
     if (connInfo.aws) {
-      templateText = replace(templateText, '<#ssl>', `ssl: 'Amazon RDS',`);
+      templateText = replace(templateText, '<#ssl>', 'ssl: \'Amazon RDS\',');
     } else {
       templateText = replace(templateText, '<#ssl>', '');
     }
 
     if (connInfo.pool) {
+      // eslint-disable-next-line
       connInfo.poolMin = connInfo.poolMin || 2;
+      // eslint-disable-next-line
       connInfo.poolMax = connInfo.poolMax || 10;
       templateText = replace(templateText, '<#pool>', `pool: { min: ${connInfo.poolMin}, max: ${connInfo.poolMax} },`);
     } else {
@@ -279,15 +276,18 @@ export function unseed(file, connection, silent) {
     })
     .catch((err) => {
       logger.error(`Error unseeding: ${err}`);
-    })
+    });
 }
 
 export function rebuildDb(connection, silent) {
   if (!connection) {
+    // eslint-disable-next-line
     connection = 'default';
   }
   const configFile = fileHelpers.getConfigFilePath(`${connection}.js`);
-  let config = require(configFile);
+  // TODO: is there a better way to do this now?
+  // eslint-disable-next-line
+  const config = require(configFile);
   const dbName = config.connection.database;
   delete config.connection.database;
 
@@ -295,13 +295,19 @@ export function rebuildDb(connection, silent) {
   return Promise.resolve()
     .then(() => {
       return knex.raw(`DROP DATABASE ${dbName}`)
-        .then(() => logger.log(`Dropped ${dbName} database`, silent))
-        .catch((err) => {
-          logger.warn(`Database ${dbName} not found. Creating.`);
+        .then(() => {
+          logger.log(`Dropped ${dbName} database`, silent);
         })
+        .catch(() => {
+          logger.warn(`Database ${dbName} not found. Creating.`);
+        });
     })
-    .then(() => knex.raw(`CREATE DATABASE ${dbName}`))
-    .then(() => logger.log(`Created ${dbName} database`, silent))
+    .then(() => {
+      knex.raw(`CREATE DATABASE ${dbName}`);
+    })
+    .then(() => {
+      logger.log(`Created ${dbName} database`, silent);
+    })
     .then(() => {
       // reset the connection to connect to the database
       knex.destroy();
@@ -321,10 +327,10 @@ export function rebuildDb(connection, silent) {
 
 export function init() {
   try {
-    let cDefault = fileHelpers.getInitFile('default.connection');
-    let mTemplate = fileHelpers.getInitFile('migration.template');
-    let sTemplate = fileHelpers.getInitFile('seed.template');
-    let modelTemplate = fileHelpers.getInitFile('model.template');
+    const cDefault = fileHelpers.getInitFile('default.connection');
+    const mTemplate = fileHelpers.getInitFile('migration.template');
+    const sTemplate = fileHelpers.getInitFile('seed.template');
+    const modelTemplate = fileHelpers.getInitFile('model.template');
 
     fileHelpers.makeDir('config');
     fileHelpers.makeDir('migrations');
@@ -333,14 +339,14 @@ export function init() {
 
     fileHelpers.write(fileHelpers.getConfigFilePath('default.js'), cDefault);
     fileHelpers.write(fileHelpers.getConfigFilePath('migration.template'), mTemplate);
-    fileHelpers.write(fileHelpers.getConfigFilePath('seed.template'), sTemplate)
+    fileHelpers.write(fileHelpers.getConfigFilePath('seed.template'), sTemplate);
     fileHelpers.write(fileHelpers.getConfigFilePath('model.template'), modelTemplate);
 
-    logger.log(`Cambio successfully initialized in this directory`);
+    logger.log('Cambio successfully initialized in this directory');
     logger.log('Installing Cambio as a local dependency.  Please wait...');
 
     // install the local database adapter
-    cp.exec('npm install --save cambio', (error, stdout, stderr) => {
+    cp.exec('npm install --save cambio', (error) => {
       if (error) {
         logger.error('Could not install Cambio as a local dependency.  Please run "npm install cambio -S"');
       } else {
@@ -356,8 +362,8 @@ export function getConnection(config) {
   return adapter.connect(config);
 }
 
-function replace(string, find, replace) {
-  return string.split(find).join(replace);
+function replace(string, find, rep) {
+  return string.split(find).join(rep);
 }
 
 function setConnection(connection) {
@@ -372,11 +378,11 @@ function setMigrationUmzug() {
   migrationUmzug = new Umzug({
     storage: `${__dirname}/helpers/storage`,
     storageOptions: {
-      tableName: 'coMigrations'
+      tableName: 'coMigrations',
     },
     migrations: {
-      path: fileHelpers.getMigrationsPath()
-    }
+      path: fileHelpers.getMigrationsPath(),
+    },
   });
 }
 
@@ -384,11 +390,10 @@ function setSeedUmzug() {
   seedUmzug = new Umzug({
     storage: `${__dirname}/helpers/storage`,
     storageOptions: {
-      tableName: 'coSeeds'
+      tableName: 'coSeeds',
     },
     migrations: {
-      path: fileHelpers.getSeedsPath()
-    }
-
+      path: fileHelpers.getSeedsPath(),
+    },
   });
 }

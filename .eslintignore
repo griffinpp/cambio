@@ -1,0 +1,2 @@
+lib/**/*.*
+mocha.conf.js

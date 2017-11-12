@@ -49,7 +49,7 @@ export function getDbDir() {
     }
 
     let packageFound = false;
-    fs.readdirSync(dir).map((file) => {
+    fs.readdirSync(dir).forEach((file) => {
       if (file === 'package.json') {
         packageFound = true;
       }
@@ -71,6 +71,7 @@ export function getDbDir() {
     ignoreDirNames.push('.git');
     ignoreDirNames.push('.bin');
 
+    // feel like this can be done better, just can't get my brain to engage on it today
     let result = null;
 
     searchDir(startDir);
@@ -90,19 +91,16 @@ export function getDbDir() {
     function searchDir(dir) {
       const subDirs = getDirList(dir);
 
-      // this will ensure that found is false if there are no subdirectories
-      let found = subDirs.length > 0;
-
-      searchNames.map((searchName) => {
-        found = found && subDirs.indexOf(searchName) !== -1;
-      });
+      const found = searchNames.reduce((acc, name) => {
+        return acc && subDirs.indexOf(name) !== -1;
+      }, subDirs.length > 0);
 
       // if found is still true, every search item was found in this directory
       if (found) {
         result = dir;
       // otherwise, continue searching into the subdirectories
       } else {
-        subDirs.map((subDir) => {
+        subDirs.forEach((subDir) => {
           searchDir(path.join(dir, subDir));
         });
       }

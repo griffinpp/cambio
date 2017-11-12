@@ -1,2 +1,4 @@
 node_modules
 yarn-error.log
+temp.js
+test.sqlite

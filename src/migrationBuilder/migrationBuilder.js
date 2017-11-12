@@ -1,4 +1,5 @@
 import mysqlGetSchema from './mysqlAdapter';
+import sqliteGetSchema from './sqliteAdapter';
 
 // should export a function that takes a connection config and uses info in the connection
 // to determine what adapter to use. Adpters should return an array of table information objects
@@ -8,6 +9,10 @@ export default async function buildMigration(config) {
   let tableInfo;
   if (config.client === 'mysql') {
     tableInfo = await mysqlGetSchema(config);
+  } else if (config.client === 'sqlite3') {
+    tableInfo = await sqliteGetSchema(config);
+  } else if (config.client === 'pg') {
+    throw new Error('Postgres support is still in development');
   } else {
     throw new Error(`Unsupported client specified: ${config.client}`);
   }
@@ -15,7 +20,6 @@ export default async function buildMigration(config) {
   const sortedTables = sortTablesByReferences(tableInfo);
   const up = buildSchemaKnex(sortedTables);
   const down = buildTeardownKnex(sortedTables);
-  // TODO: use sorted tables to build the "down" portion of the migration, then put it all together
   const migrationText = buildMigrationKnex(up, down);
   console.log(migrationText);
 }

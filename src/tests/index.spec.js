@@ -145,7 +145,7 @@ describe('cambio module', () => {
 
     describe('when there is an error', () => {
       beforeEach(() => {
-        up.returns(Promise.reject);
+        up.returns(Promise.reject());
       });
 
       it('should log the error', (done) => {

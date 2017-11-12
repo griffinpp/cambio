@@ -1,7 +1,7 @@
 import Knex from 'knex';
 
 export default async function getSchema(config) {
-  // TODO not sure if this is the right way to get the connection...
+  // TODO not sure if this is how I want to get the connection...
   const connection = Knex(config);
   try {
     const tableNames = await getMySqlTableNames(connection);

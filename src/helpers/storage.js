@@ -1,86 +1,68 @@
-import redefine from 'redefine';
-// this file runs in the context of the host package, which has cambio installed
-// eslint-disable-next-line
-import * as co from 'cambio';
+import { getConnection } from '../index';
+import * as fileHelpers from './fileHelper';
 
-// dynamically require some modules that should be in the host project
-// eslint-disable-next-line
-const fileHelpers = require(`${__dirname}/fileHelper`);
-
-//get the requested connection information that should also be in the host project
-// eslint-disable-next-line
+//get the requested connection information that should be in the host project
+// eslint-disable-next-line import/no-dynamic-require
 const config = require(`${fileHelpers.getConfigFilePath()}${process.env.connection}.js`);
 
-module.exports = redefine.Class({
-  constructor: (options) => {
-    this.options = options || {};
-    if (!options.storageOptions) {
-      // eslint-disable-next-line
-      options.storageOptions = {};
+// doing it any other way seems to cause Umzug to barf
+module.exports = function Storage(options) {
+  this.options = options || {};
+  if (!this.options.storageOptions) {
+    this.options.storageOptions = {};
+  }
+  if (!this.options.storageOptions.tableName) {
+    this.options.storageOptions.tableName = 'cambio';
+  }
+  // eslint is mistaking async for the function name here
+  // eslint-disable-next-line space-before-function-paren
+  this.logMigration = async (migrationName) => {
+    const connection = getConnection(config);
+    try {
+      await this.createTableIfNotExists(connection);
+      const result = await connection(this.options.storageOptions.tableName).insert({ name: migrationName });
+      connection.destroy();
+      return result;
+    } catch (e) {
+      connection.destroy();
+      throw e;
     }
-    if (!options.storageOptions.tableName) {
-      // eslint-disable-next-line
-      options.storageOptions.tableName = 'cambio';
+  };
+  // eslint-disable-next-line space-before-function-paren
+  this.unlogMigration = async (migrationName) => {
+    const connection = getConnection(config);
+    try {
+      await this.createTableIfNotExists(connection);
+      const result = connection(this.options.storageOptions.tableName).where({ name: migrationName }).del();
+      connection.destroy();
+      return result;
+    } catch (e) {
+      connection.destroy();
+      throw e;
     }
-  },
-  logMigration: (migrationName) => {
-    const connection = co.getConnection(config);
-
-    return this.createTableIfNotExists(connection)
-      .then(() => {
-        return connection(this.options.storageOptions.tableName).insert({ name: migrationName });
-      })
-      .then((result) => {
-        connection.destroy();
-        return result;
-      })
-      .catch((err) => {
-        connection.destroy();
-        throw err;
+  };
+  // eslint-disable-next-line space-before-function-paren
+  this.executed = async () => {
+    const connection = getConnection(config);
+    try {
+      await this.createTableIfNotExists(connection);
+      const rows = await connection.select('name').from(this.options.storageOptions.tableName);
+      connection.destroy();
+      return rows.map((r) => {
+        return r.name;
       });
-  },
-  unlogMigration: (migrationName) => {
-    const connection = co.getConnection(config);
-
-    return this.createTableIfNotExists(connection)
-      .then(() => {
-        return connection(this.options.storageOptions.tableName).where({ name: migrationName }).del();
-      })
-      .then((result) => {
-        connection.destroy();
-        return result;
-      })
-      .catch((err) => {
-        connection.destroy();
-        throw err;
-      });
-  },
-  executed: () => {
-    const connection = co.getConnection(config);
-
-    return this.createTableIfNotExists(connection)
-      .then(() => {
-        return connection.select('name').from(this.options.storageOptions.tableName);
-      })
-      .then((rows) => {
-        connection.destroy();
-        const result = [];
-        rows.map((row) => {
-          result.push(row.name);
-        });
-        return result;
-      })
-      .catch((err) => {
-        connection.destroy();
-        throw err;
-      });
-  },
-  createTableIfNotExists: (connection) => {
-    return connection.schema
+    } catch (e) {
+      connection.destroy();
+      throw e;
+    }
+  };
+  // eslint-disable-next-line space-before-function-paren
+  this.createTableIfNotExists = async (connection) => {
+    await connection.schema
       .createTableIfNotExists(this.options.storageOptions.tableName, (table) => {
         table.increments('id').primary();
         table.string('name').notNullable();
         table.timestamp('loggedAt');
       });
-  },
-});
+  };
+};

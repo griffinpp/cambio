@@ -13,24 +13,28 @@
   "dependencies": {
     "colors": "^1.1.2",
     "knex": "0.13.0",
+    "moment": "^2.13.0",
     "mysql": "^2.11.1",
     "postgresql": "0.0.1",
-    "moment": "^2.13.0",
     "redefine": "^0.2.1",
+    "sqlite3": "^3.1.13",
     "umzug": "^1.11.0"
   },
   "devDependencies": {
     "babel-cli": "^6.10.1",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "chai": "^3.5.0",
-    "mocha": "^2.5.3",
-    "proxyquire": "^1.7.9",
-    "sinon": "^1.17.4",
     "coveralls": "^3.0.0",
     "eslint": "^4.9.0",
     "eslint-config-airbnb": "^16.1.0",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.2",
-    "eslint-plugin-react": "^7.4.0"
+    "eslint-plugin-react": "^7.4.0",
+    "mocha": "^2.5.3",
+    "proxyquire": "^1.7.9",
+    "sinon": "^1.17.4"
   }
 }

@@ -33,7 +33,7 @@ module.exports = function Storage(options) {
     const connection = getConnection(config);
     try {
       await this.createTableIfNotExists(connection);
-      const result = connection(this.options.storageOptions.tableName).where({ name: migrationName }).del();
+      const result = await connection(this.options.storageOptions.tableName).where({ name: migrationName }).del();
       connection.destroy();
       return result;
     } catch (e) {

@@ -33,8 +33,6 @@ async function getMySqlTableInformation(connection, dbName, tableName) {
   return {
     name: tableName,
     columns: rawColumnInfo[0].map((column) => {
-      // this second array contains additional metadata about the column. Maybe not needed?
-      // const metadata = rawColumnInfo[1][i];
       const constraints = rawConstraints[0].filter((c) => {
         return c.COLUMN_NAME === column.Field;
       });
@@ -44,6 +42,7 @@ async function getMySqlTableInformation(connection, dbName, tableName) {
         knexType: mySqlParseType(column.Type, column.Extra),
         notNullable: column.Null === 'NO',
         unsigned: checkUnsigned(column.Type),
+        // TODO
         unique: false,
         default: column.Default,
         primary: constraints.some((c) => {
@@ -52,6 +51,7 @@ async function getMySqlTableInformation(connection, dbName, tableName) {
         foreignKey: mysqlGetForeignKey(constraints),
       };
     }),
+    // TODO
     indexes: {},
   };
 }

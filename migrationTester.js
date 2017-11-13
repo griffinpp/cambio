@@ -1,6 +1,6 @@
 import buildMigration from './src/migrationBuilder/migrationBuilder';
-
-const config = {
+// eslint-disable-next-line
+const mysqlConfig = {
   client: 'mysql',
   connection: {
     host: '127.0.0.1',
@@ -16,11 +16,20 @@ const config = {
   },
 };
 
+// eslint-disable-next-line
+const sqliteConfig = {
+  client: 'sqlite3',
+  connection: {
+    filename: './test.sqlite',
+  },
+  useNullAsDefault: true,
+};
+
 run();
 
 async function run() {
   try {
-    await buildMigration(config);
+    await buildMigration(sqliteConfig);
   } catch (e) {
     console.log(e.stack);
   }

@@ -11,7 +11,6 @@ export default async function getSchema(config) {
       tables.push(tableInfo);
     }
     connection.destroy();
-    // console.log(JSON.stringify(tables, null, 2));
     return tables;
   } catch (e) {
     console.log(e.stack);
@@ -32,7 +31,6 @@ async function getSqliteTableNames(connection) {
   });
 }
 
-// eslint-disable-next-line
 async function getSqliteTableInformation(connection, tableName) {
   const rawColumnInfo = await connection.raw(`pragma table_info(${tableName})`);
   const rawForeigns = await connection.raw(`pragma foreign_key_list(${tableName})`);
@@ -40,8 +38,6 @@ async function getSqliteTableInformation(connection, tableName) {
   return {
     name: tableName,
     columns: rawColumnInfo.map((column) => {
-      // this second array contains additional metadata about the column. Maybe not needed?
-      // const metadata = rawColumnInfo[1][i];
       const fk = rawForeigns.filter((c) => {
         return c.from === column.name;
       });
@@ -76,7 +72,7 @@ function sqliteParseType(rawType, pk, tableAutoIncrement) {
     is completely valid, so we do our best to guess at likely column types based on sqlite docs and what
     knex generates in the first place...
 
-   Types that have funcitons in knex:
+   Types that have functions in knex:
     – increments
     – integer
     – bigInteger
@@ -138,8 +134,12 @@ function sqliteParseType(rawType, pk, tableAutoIncrement) {
         params: null,
       };
     case 'year':
-    case 'datetime':
     case 'date':
+      return {
+        type: 'date',
+        params: null,
+      };
+    case 'datetime':
       return {
         type: 'dateTime',
         params: null,

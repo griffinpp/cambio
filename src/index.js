@@ -1,12 +1,7 @@
-import cp from 'child_process';
 import Umzug from 'umzug';
 import * as fileHelpers from './helpers/fileHelper';
 import * as logger from './helpers/logger';
 import connect from './knex.adapter';
-
-let migrationUmzug;
-
-let seedUmzug;
 
 function printList(list) {
   list.forEach((item, i) => {
@@ -25,76 +20,82 @@ export function createMigration(name, silent) {
   }
 }
 
-export async function up(to, connection, silent) {
-  setConnection(connection);
-  setMigrationUmzug();
-
+export async function up(to, connectionName, silent) {
+  const connection = getConnectionFromName(connectionName);
+  const mUmzug = getMigrationUmzug(connection);
   try {
     if (to && to !== null) {
-      await migrationUmzug.up({ to });
+      await mUmzug.up({ to });
       logger.log(`Migrations up to ${to} complete`, silent);
       return;
     }
-    await migrationUmzug.up();
+    await mUmzug.up();
     logger.log('All migrations complete', silent);
     return;
   } catch (e) {
-    logger.error(`Error running up migration(s): ${e}`);
+    logger.error(`Error running up migration(s): ${e.stack}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function down(to, connection, silent) {
-  setConnection(connection);
-  setMigrationUmzug();
-
+export async function down(to, connectionName, silent) {
+  const connection = getConnectionFromName(connectionName);
+  const mUmzug = getMigrationUmzug(connection);
   try {
     if (to && to !== null) {
-      await migrationUmzug.down({ to });
+      await mUmzug.down({ to });
       logger.log(`Migrations down to ${to} complete`, silent);
       return;
     }
-    await migrationUmzug.down();
+    await mUmzug.down();
     logger.log('Latest migration down complete', silent);
     return;
   } catch (e) {
     logger.error(`Error running down migration(s): ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function listExecuted(connection) {
-  setConnection(connection);
-  setMigrationUmzug();
+export async function listExecuted(connectionName) {
+  const connection = getConnectionFromName(connectionName);
+  const mUmzug = getMigrationUmzug(connection);
 
   try {
-    const list = await migrationUmzug.executed();
+    const list = await mUmzug.executed();
     logger.log('Executed Migrations');
     printList(list);
     logger.log('\n');
   } catch (e) {
     logger.error(`Error listing migrations: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export function listPending(connection) {
-  setConnection(connection);
-  setMigrationUmzug();
+export function listPending(connectionName) {
+  const connection = getConnectionFromName(connectionName);
+  const mUmzug = getMigrationUmzug(connection);
 
   try {
-    const list = migrationUmzug.pending();
+    const list = mUmzug.pending();
     printList(list);
     logger.log('\n');
   } catch (e) {
     logger.error(`Error listing migrations: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function listAll(connection) {
-  setConnection(connection);
-  setMigrationUmzug();
+export async function listAll(connectionName) {
+  const connection = getConnectionFromName(connectionName);
+  const mUmzug = getMigrationUmzug(connection);
 
   try {
-    const eList = await migrationUmzug.executed();
-    const pList = await migrationUmzug.pending();
+    const eList = await mUmzug.executed();
+    const pList = await mUmzug.pending();
     logger.log('Executed Migrations:');
     printList(eList);
     logger.log('');
@@ -103,44 +104,50 @@ export async function listAll(connection) {
     logger.log('');
   } catch (e) {
     logger.error(`Error listing migrations: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function listExecutedSeeds(connection) {
-  setConnection(connection);
-  setSeedUmzug();
+export async function listExecutedSeeds(connectionName) {
+  const connection = getConnectionFromName(connectionName);
+  const sUmzug = getSeedUmzug(connection);
 
   try {
-    const list = await seedUmzug.executed();
+    const list = await sUmzug.executed();
     logger.log('Applied Seeds:');
     printList(list);
     logger.log('\n');
   } catch (e) {
     logger.error(`Error listing seeds: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function listPendingSeeds(connection) {
-  setConnection(connection);
-  setSeedUmzug();
+export async function listPendingSeeds(connectionName) {
+  const connection = getConnectionFromName(connectionName);
+  const sUmzug = getSeedUmzug(connection);
 
   try {
-    const list = await seedUmzug.pending();
+    const list = await sUmzug.pending();
     logger.log('Unapplied Seeds:');
     printList(list);
     logger.log('\n');
   } catch (e) {
     logger.error(`Error listing seeds: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function listAllSeeds(connection) {
-  setConnection(connection);
-  setSeedUmzug();
+export async function listAllSeeds(connectionName) {
+  const connection = getConnectionFromName(connectionName);
+  const sUmzug = getSeedUmzug(connection);
 
   try {
-    const aList = await seedUmzug.executed();
-    const uList = await seedUmzug.pending();
+    const aList = await sUmzug.executed();
+    const uList = await sUmzug.pending();
     logger.log('Applied Seeds:');
     printList(aList);
     logger.log('');
@@ -149,6 +156,8 @@ export async function listAllSeeds(connection) {
     logger.log('');
   } catch (e) {
     logger.error(`Error listing seeds: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
@@ -228,36 +237,40 @@ export function createConn(connInfo, silent) {
   }
 }
 
-export async function seed(file, connection, silent) {
-  setConnection(connection);
-  setSeedUmzug();
+export async function seed(file, connectionName, silent) {
+  const connection = getConnectionFromName(connectionName);
+  const sUmzug = getSeedUmzug(connection);
 
   try {
-    await seedUmzug.up(file);
+    await sUmzug.up(file);
     logger.log(`${file} successfully seeded`, silent);
   } catch (e) {
     logger.error(`Error seeding the database: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function unseed(file, connection, silent) {
-  setConnection(connection);
-  setSeedUmzug();
+export async function unseed(file, connectionName, silent) {
+  const connection = getConnectionFromName(connectionName);
+  const sUmzug = getSeedUmzug(connection);
 
   try {
-    await seedUmzug.down(file);
+    await sUmzug.down(file);
     logger.log(`${file} unseeded`, silent);
   } catch (e) {
     logger.error(`Error unseeding: ${e}`);
+  } finally {
+    connection.destroy();
   }
 }
 
-export async function rebuildDb(connection, silent) {
-  if (!connection) {
+export async function rebuildDb(connectionName, silent) {
+  if (!connectionName) {
     // eslint-disable-next-line
-    connection = 'default';
+    connectionName = 'default';
   }
-  const configFile = fileHelpers.getConfigFilePath(`${connection}.js`);
+  const configFile = fileHelpers.getConfigFilePath(`${connectionName}.js`);
   // TODO: is there a better way to do this now?
   // eslint-disable-next-line
   const config = require(configFile);
@@ -274,10 +287,11 @@ export async function rebuildDb(connection, silent) {
     }
     await knex.raw(`CREATE DATABASE ${dbName}`);
     logger.log(`Created ${dbName} database`, silent);
+    // destroy and recreate the connection now that the db has been created
     knex.destroy();
     config.connection.database = dbName;
     knex = getConnection(config);
-    await up(null, connection);
+    await up(null, connectionName);
     knex.destroy();
   } catch (e) {
     logger.error(`Error rebuilding database: ${e}`);
@@ -303,16 +317,6 @@ export function init() {
     fileHelpers.write(fileHelpers.getConfigFilePath('model.template'), modelTemplate);
 
     logger.log('Cambio folders and templates successfully initialized in this directory');
-    // logger.log('Installing Cambio as a local dependency.  Please wait...');
-
-    // install the local database adapter
-    // cp.exec('npm install --save cambio', (error) => {
-    //   if (error) {
-    //     logger.error('Could not install Cambio as a local dependency.  Please run "npm install cambio -S"');
-    //   } else {
-    //     logger.log('Cambio installed as a local dependency');
-    //   }
-    // });
   } catch (err) {
     logger.error(`Error initializing Cambio: ${err}`);
   }
@@ -322,37 +326,44 @@ export function getConnection(config) {
   return connect(config);
 }
 
+function getConnectionFromName(connectionName) {
+  if (!connectionName) {
+    // eslint-disable-next-line
+    connectionName = 'default';
+  }
+  const configFile = fileHelpers.getConfigFilePath(`${connectionName}.js`);
+  // eslint-disable-next-line
+  const config = require(configFile);
+  return getConnection(config);
+}
+
 function replace(string, find, rep) {
   return string.split(find).join(rep);
 }
 
-function setConnection(connection) {
-  if (connection) {
-    process.env.connection = connection;
-  } else {
-    process.env.connection = 'default';
-  }
-}
-
-function setMigrationUmzug() {
-  migrationUmzug = new Umzug({
-    storage: `${__dirname}/helpers/storage`,
+function getMigrationUmzug(activeConnection) {
+  return new Umzug({
+    storage: `${__dirname}/objects/CustomStorage`,
     storageOptions: {
       tableName: 'cambioMigrations',
+      connection: activeConnection,
     },
     migrations: {
+      params: [activeConnection],
       path: fileHelpers.getMigrationsPath(),
     },
   });
 }
 
-function setSeedUmzug() {
-  seedUmzug = new Umzug({
+function getSeedUmzug(activeConnection) {
+  return new Umzug({
     storage: `${__dirname}/helpers/storage`,
     storageOptions: {
       tableName: 'cambioSeeds',
+      connection: activeConnection,
     },
     migrations: {
+      params: [activeConnection],
       path: fileHelpers.getSeedsPath(),
     },
   });
